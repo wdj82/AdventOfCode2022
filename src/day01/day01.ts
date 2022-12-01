@@ -3,17 +3,18 @@
 
 import rawInput from "./rawInput";
 
-const calories = rawInput
+// separate calories for each elf
+// convert their calories into array of numbers
+// sum up the array
+// sort the totals in descending order
+const elfCalories = rawInput
   .split("\n\n")
   .map((elf) => elf.split("\n").map((calories) => Number(calories)))
-  .map((calories) => {
-    return calories.reduce((acc, prev) => acc + prev, 0);
-  })
+  .map((calories) => calories.reduce((acc, prev) => acc + prev, 0))
   .sort((a, b) => b - a);
 
-const partOne = calories.reduce((acc, curr) => (curr > acc ? curr : acc), 0);
-
-const partTwo = calories[0] + calories[1] + calories[2];
+const partOne = Math.max(...elfCalories);
+const partTwo = elfCalories[0] + elfCalories[1] + elfCalories[2];
 
 document.getElementById("partOne")?.appendChild(document.createTextNode(partOne.toString()));
 document.getElementById("partTwo")?.appendChild(document.createTextNode(partTwo.toString()));
