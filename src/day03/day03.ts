@@ -1,7 +1,10 @@
 // Advent of Code day 3
 // https://adventofcode.com/2022/day/3
 
-import { rawInput, alphaScores } from "./rawInput";
+import { rawInput } from "./rawInput";
+
+const LOWER_START = "a".charCodeAt(0) - 1;
+const UPPER_START = "A".charCodeAt(0) - 27;
 
 const rucksacks = rawInput.split("\n");
 
@@ -18,7 +21,10 @@ const partOne = compartments.reduce((acc, [compartment1, compartment2]) => {
       break;
     }
   }
-  return acc + alphaScores[item];
+  if (item.toLowerCase() === item) {
+    return acc + item.charCodeAt(0) - LOWER_START;
+  }
+  return acc + item.charCodeAt(0) - UPPER_START;
 }, 0);
 
 let partTwo = 0;
@@ -35,7 +41,11 @@ for (let i = 0; i < rucksacks.length; i += 3) {
     }
   }
 
-  partTwo += alphaScores[item];
+  if (item.toLowerCase() === item) {
+    partTwo += item.charCodeAt(0) - LOWER_START;
+  } else {
+    partTwo += item.charCodeAt(0) - UPPER_START;
+  }
 }
 
 document.getElementById("partOne")?.appendChild(document.createTextNode(partOne.toString()));
