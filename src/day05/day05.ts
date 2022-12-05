@@ -23,9 +23,7 @@ function createStacks() {
       if (currChar === " ") {
         currStackNum += 1;
         i += 3;
-        continue;
-      }
-      if (currChar !== "[") {
+      } else if (currChar !== "[") {
         stacks[currStackNum].unshift(currChar);
         currStackNum += 1;
         i += 3;
