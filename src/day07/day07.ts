@@ -63,10 +63,10 @@ console.log({ partOne });
 const unusedSpace = 70000000 - fileSystem["/"].totalSize;
 const neededSpace = 30000000 - unusedSpace;
 
-let partTwo = Infinity;
-Object.values(fileSystem).forEach((dir) => {
-  if (dir.totalSize >= neededSpace) partTwo = Math.min(partTwo, dir.totalSize);
-});
+const partTwo = Object.values(fileSystem).reduce(
+  (acc, dir) => (dir.totalSize >= neededSpace ? Math.min(acc, dir.totalSize) : acc),
+  Infinity
+);
 
 console.log({ partTwo });
 document.getElementById("partOne")?.appendChild(document.createTextNode(partOne.toString()));
