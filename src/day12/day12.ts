@@ -31,26 +31,18 @@ const grid = rawInput.split("\n").map((line) => line.split(""));
 const gridHeight = grid.length;
 const gridWidth = grid[0].length;
 
-const endNode = { x: 0, y: 0 };
-
-function findFewestSteps() {
+function findFewestSteps(startChar: string, endChar: string, reverse = false) {
   const distances: number[][] = [...Array(gridHeight)].map(() => Array(gridWidth).fill(Infinity));
 
   const nodes = new PriorityQueue();
 
   for (let x = 0; x < gridHeight; x++) {
     for (let y = 0; y < gridWidth; y++) {
-      if (grid[x][y] === "S") {
+      if (grid[x][y] === startChar) {
         distances[x][y] = 0;
-        grid[x][y] = "a";
         nodes.enqueue({ x, y }, 0);
       } else {
         nodes.enqueue({ x, y }, Infinity);
-      }
-      if (grid[x][y] === "E") {
-        grid[x][y] = "z";
-        endNode.x = x;
-        endNode.y = y;
       }
     }
   }
@@ -58,15 +50,28 @@ function findFewestSteps() {
   while (!nodes.isEmpty()) {
     const { x, y } = nodes.dequeue().value;
 
-    if (x === endNode.x && y === endNode.y) {
-      // found E
+    let currentChar = grid[x][y];
+    if (currentChar === "E") currentChar = "z";
+    else if (currentChar === "S") currentChar = "a";
+
+    if (grid[x][y] === endChar) {
       return distances[x][y];
     }
 
     if (distances[x][y] !== Infinity) {
       getAdjacentCells(x, y, gridHeight, gridWidth).forEach(({ newX, newY }) => {
-        if (grid[newX][newY].charCodeAt(0) - grid[x][y].charCodeAt(0) > 1) {
+        let nextChar = grid[newX][newY];
+        if (nextChar === "S") nextChar = "a";
+        else if (nextChar === "E") nextChar = "z";
+
+        // part two
+        if (reverse && currentChar.charCodeAt(0) - nextChar.charCodeAt(0) > 1) {
           // too steep
+          return;
+        }
+
+        // part one
+        if (!reverse && nextChar.charCodeAt(0) - currentChar.charCodeAt(0) > 1) {
           return;
         }
 
@@ -82,34 +87,8 @@ function findFewestSteps() {
   throw new Error("something went wrong");
 }
 
-function multipleStarts() {
-  const startNode = { x: 0, y: 0 };
-  const possibleStarts: { x: number; y: number }[] = [];
-  for (let x = 0; x < gridHeight; x++) {
-    for (let y = 0; y < gridWidth; y++) {
-      if (grid[x][y] === "a") {
-        possibleStarts.push({ x, y });
-      } else if (grid[x][y] === "S") {
-        startNode.x = x;
-        startNode.y = y;
-      }
-    }
-  }
-
-  grid[startNode.x][startNode.y] = "a";
-  let minSteps = Infinity;
-
-  possibleStarts.forEach((newStart) => {
-    grid[newStart.x][newStart.y] = "S";
-    const newTrail = findFewestSteps();
-    minSteps = Math.min(newTrail, minSteps);
-    grid[newStart.x][newStart.y] = "a";
-  });
-  return minSteps;
-}
-
-const partOne = findFewestSteps();
-const partTwo = multipleStarts();
+const partOne = findFewestSteps("S", "E");
+const partTwo = findFewestSteps("E", "a", true);
 
 console.log({ partOne });
 console.log({ partTwo });
