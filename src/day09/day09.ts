@@ -11,11 +11,11 @@ import { rawInput } from "./rawInput";
 const instructions = rawInput.split("\n").map((line) => line.split(" "));
 
 function isTouching(knot: Knot, prevKnot: Knot) {
-  const manDistance = Math.abs(knot.x - prevKnot.x) + Math.abs(knot.y - prevKnot.y);
+  const distance = Math.abs(knot.x - prevKnot.x) + Math.abs(knot.y - prevKnot.y);
   if (knot.x === prevKnot.x || knot.y === prevKnot.y) {
-    return manDistance <= 1;
+    return distance <= 1;
   }
-  return manDistance === 2;
+  return distance === 2;
 }
 
 function simulateKnots(numOfKnots: number) {
@@ -24,7 +24,7 @@ function simulateKnots(numOfKnots: number) {
 
   instructions.forEach(([move, distance]) => {
     const delta = move === "D" || move === "L" ? -1 : 1;
-    const axis: "x" | "y" = move === "U" || move === "D" ? "x" : "y";
+    const axis = move === "U" || move === "D" ? "x" : "y";
 
     for (let i = 0; i < Number(distance); i++) {
       // move head
@@ -40,6 +40,7 @@ function simulateKnots(numOfKnots: number) {
           knot.x += xDist;
           knot.y += yDist;
 
+          // save where tail has been
           if (i === knots.length - 1) visited.add(JSON.stringify(knot));
         }
       }
