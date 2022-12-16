@@ -2,7 +2,7 @@
 // https://adventofcode.com/2022/day/16
 
 import PriorityQueue from "./priorityQueue";
-import { rawInput } from "./rawInput";
+import { testInput as rawInput } from "./rawInput";
 
 interface Node {
   valve: string;
@@ -33,9 +33,11 @@ const tunnels = rawInput
     return { ...acc, [valve]: { valve, flowRate, tunnels, open: false } };
   }, {} as Record<string, Node>);
 
-console.log({ tunnels });
-
 function findFewestSteps(start: string, end: string) {
+  if (savedPaths.has(`${start}->${end}`) || savedPaths.has(`${end}->${start}`)) {
+    return savedPaths.get(`${start}->${end}`);
+  }
+
   const distances: Record<string, number> = {};
   const prev: Record<string, string> = {};
 
@@ -61,6 +63,10 @@ function findFewestSteps(start: string, end: string) {
         out.push(curr);
         curr = prev[curr];
       }
+
+      const steps = out.length + 1;
+      savedPaths.set(`${start}->${end}`, steps);
+      savedPaths.set(`${end}->${start}`, steps);
 
       return out.length + 1;
     }
@@ -93,13 +99,7 @@ function openValves(currentValve: string, closedValves: string[], time: number):
 
   let bestFlow = 0;
   nextValves.forEach((valve) => {
-    let steps = 0;
-    if (savedPaths.has(`${currentValve}->${valve}`)) {
-      steps = savedPaths.get(`${currentValve}->${valve}`);
-    } else {
-      steps = findFewestSteps(currentValve, valve);
-      savedPaths.set(`${currentValve}->${valve}`, steps);
-    }
+    const steps = findFewestSteps(currentValve, valve);
 
     const timeLeft = time - steps;
     if (timeLeft > 0) {
@@ -111,16 +111,54 @@ function openValves(currentValve: string, closedValves: string[], time: number):
   savedTotals.set(`${currentValve},${[...closedValves]},${time}`, bestFlow);
   return bestFlow;
 }
-// const test = 1n
-const result = openValves("AA", flowRateValves, 30);
-console.log({ result });
 
-console.log({ savedPaths });
-
-const partOne = "partOne";
-const partTwo = "partTwo";
-
+const partOne = openValves("AA", flowRateValves, 30);
 console.log({ partOne });
+
+const bestFlowMap: Record<string, number> = {};
+
+function recordPath(currentValve: string, time: number, path: string[], pathFlow: number) {
+  const nextValves = flowRateValves.filter((valve) => !path.includes(valve));
+  const pathKey = [...path].sort().join("");
+  bestFlowMap[pathKey] = Math.max(bestFlowMap[pathKey] ?? 0, pathFlow);
+  let bestFlow = 0;
+  nextValves.forEach((valve) => {
+    const timeLeft = time - findFewestSteps(currentValve, valve);
+    if (timeLeft > 0) {
+      let flow = tunnels[valve].flowRate * timeLeft;
+      flow = recordPath(valve, timeLeft, [valve, ...path], flow + pathFlow);
+      bestFlow = Math.max(flow, bestFlow);
+    }
+  });
+  return bestFlow;
+}
+
+recordPath("AA", 26, [], 0);
+
+function extendBestFlowMap(options: string[]) {
+  const pathKey = options.join("");
+  if (bestFlowMap[pathKey] === undefined) {
+    let bestFlow = 0;
+    options.forEach((option) => {
+      const remaining = options.filter((o) => o !== option);
+      bestFlow = Math.max(extendBestFlowMap(remaining), bestFlow);
+    });
+    bestFlowMap[pathKey] = bestFlow;
+  }
+  return bestFlowMap[pathKey];
+}
+flowRateValves.push("AA");
+const keyValvesExpectAA = flowRateValves.filter((valve) => valve !== "AA").sort();
+extendBestFlowMap(keyValvesExpectAA);
+
+let partTwo = 0;
+Object.keys(bestFlowMap).forEach((human) => {
+  const elephant = keyValvesExpectAA.reduce((k, v) => (human.indexOf(v) ? k : k + v), "");
+  partTwo = Math.max(partTwo, bestFlowMap[human] + bestFlowMap[elephant]);
+});
+
+console.log({ bestFlowMap });
+
 console.log({ partTwo });
 
 document.getElementById("partOne")?.appendChild(document.createTextNode(partOne.toString()));
