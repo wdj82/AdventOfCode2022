@@ -2,12 +2,11 @@
 // https://adventofcode.com/2022/day/17
 
 import { drawToCanvas } from "./drawToCanvas";
-import { testInput as rawInput } from "./rawInput";
+import { rawInput } from "./rawInput";
 
 const input = rawInput.split("");
 
 function getRock(type: number, y: number) {
-  console.log({ y });
   if (type === 0) {
     return [
       { x: 2, y },
@@ -61,14 +60,14 @@ const cave = [
 ];
 
 const CAVE_WIDTH = 7;
-let rockHeight = 0;
+let heightIndex = 0;
 let currentRock = 0;
 let windIndex = 0;
 
 function findTop() {
-  for (let i = rockHeight; i < cave.length; i++) {
+  for (let i = heightIndex; i < cave.length; i++) {
     if (cave[i].every((space) => space === ".")) {
-      rockHeight = i - 1;
+      heightIndex = i - 1;
       return;
     }
   }
@@ -80,63 +79,74 @@ function canMove(deltaX: number, deltaY: number, rock: { x: number; y: number }[
 }
 
 function move(newRock: { x: number; y: number }[]) {
-  drawCave(newRock);
+  // drawCave(newRock);
   while (newRock[0].y > 0) {
     const wind = input[windIndex];
     windIndex = (windIndex + 1) % input.length;
-    console.log({ wind });
-    console.log("new wind index: ", windIndex);
+    // console.log({ wind });
+    // console.log("new wind index: ", windIndex);
 
     const last = newRock.at(-1);
     if (!last) return;
 
     if (wind === "<" && newRock[0].x - 1 >= 0 && canMove(-1, 0, newRock)) {
-      console.log("moving left");
+      // console.log("moving left");
       for (let i = 0; i < newRock.length; i++) {
         newRock[i].x -= 1;
       }
     } else if (wind === ">" && last.x + 1 < CAVE_WIDTH && canMove(1, 0, newRock)) {
-      console.log("moving right");
-      console.log("last: ", last);
+      // console.log("moving right");
       for (let i = 0; i < newRock.length; i++) {
         newRock[i].x += 1;
       }
     }
 
     if (canMove(0, -1, newRock)) {
-      console.log("moving down");
+      // console.log("moving down");
       for (let i = 0; i < newRock.length; i++) {
         newRock[i].y -= 1;
       }
     } else {
-      console.log("settled");
+      // console.log("settled");
       newRock.forEach(({ x, y }) => {
         cave[y][x] = "#";
       });
-      drawCave(newRock, "settled");
+      // drawCave(newRock, "settled");
       return;
     }
   }
 }
 
-function addRock() {
-  console.log("--------- New rock -----------");
-  for (let i = 0; i < 4; i++) {
+function addToCave(lines: number) {
+  const numToAdd = lines + (heightIndex + 4 - cave.length);
+  for (let i = 0; i < numToAdd; i++) {
+    // console.log(`adding line ${i}`);
     cave.push([".", ".", ".", ".", ".", ".", "."]);
   }
-  console.log("drawn cave height: ", cave.length);
-  const newRock = getRock(currentRock, rockHeight + 4);
+}
+
+function addRock() {
+  // console.log("--------- New rock -----------");
+  // console.log({ heightIndex, caveLength: cave.length });
+  if (currentRock === 3) addToCave(4);
+  else if (currentRock === 1 || currentRock === 2) addToCave(3);
+  else if (currentRock === 4) addToCave(2);
+  else addToCave(1);
+  // console.log("drawn cave height: ", cave.length);
+  const newRock = getRock(currentRock, heightIndex + 4);
 
   move(newRock);
 
   findTop();
-  console.log({ rockHeight });
+  // console.log({ heightIndex });
   currentRock = (currentRock + 1) % 5;
 }
 
-for (let i = 0; i < 11; i++) {
+for (let i = 0; i < 2022; i++) {
   addRock();
 }
+
+console.log({ heightIndex });
 
 // let newHeight = findTop();
 // console.log({ newHeight });
